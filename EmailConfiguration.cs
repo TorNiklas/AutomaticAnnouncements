@@ -4,6 +4,9 @@ using System.Text;
 
 namespace AutomaticAnnouncements
 {
+	/*
+	 * Interface and class to help the email service
+	 */
 	public interface IEmailConfiguration
 	{
 		string SmtpServer { get; }

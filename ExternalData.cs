@@ -8,6 +8,8 @@ namespace AutomaticAnnouncements
 {
 	static class ExternalData
 	{
+		// File contains sensitive data, therefore not on GitHub, though names should make everything obvius
+		// Functions here are to extract information from the file
 		private readonly static string path = "..\\..\\..\\config.json";
 		public static JToken GetSection(string section)
 		{

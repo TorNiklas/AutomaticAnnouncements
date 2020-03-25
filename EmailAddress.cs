@@ -4,6 +4,10 @@ using System.Text;
 
 namespace AutomaticAnnouncements
 {
+	/*
+	 * Basic class for email addresses to help the email service
+	 * Everything here should be self-explanatory
+	 */
 	public class EmailAddress
 	{
 		public string Name { get; set; }
@@ -35,7 +39,6 @@ namespace AutomaticAnnouncements
 				   && obj1.Address == obj2.Address);
 		}
 
-		// this is second one '!='
 		public static bool operator !=(EmailAddress obj1, EmailAddress obj2)
 		{
 			return !(obj1 == obj2);
