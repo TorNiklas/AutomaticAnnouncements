@@ -7,6 +7,7 @@ using MimeKit;
 using System.Linq;
 using MimeKit.Text;
 using MailKit.Net.Pop3;
+using MailKit.Security;
 
 namespace AutomaticAnnouncements
 {
@@ -83,14 +84,19 @@ namespace AutomaticAnnouncements
 		public List<EmailMessage> ReceiveLatestEmail(int maxCount = 10)
 		{
 			using Pop3Client emailClient = new Pop3Client();
+
 			emailClient.Connect(_emailConfiguration.PopServer, _emailConfiguration.PopPort, true);
 
-			//Remove any OAuth functionality, then authenticate 
-			emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
+			//emailClient.Connect("pop.gmail.com", 995, SecureSocketOptions.SslOnConnect);
+
+			////Remove any OAuth functionality, then authenticate 
+			//emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
 			emailClient.Authenticate(_emailConfiguration.PopUsername, _emailConfiguration.PopPassword);
 
+
 			List<EmailMessage> emails = new List<EmailMessage>();
-			for (int i = emailClient.Count - 1; i >= 0 && i >= emailClient.Count - maxCount; i--)
+			//for (int i = emailClient.Count - 1; i >= 0 && i >= emailClient.Count - maxCount; i--)
+			for (int i = 0; i < emailClient.Count && i < maxCount; i++)
 			{
 				var message = emailClient.GetMessage(i);
 				var emailMessage = new EmailMessage
@@ -103,6 +109,11 @@ namespace AutomaticAnnouncements
 				emails.Add(emailMessage);
 			}
 
+			emailClient.Disconnect(true);
+			//foreach (var email in emails)
+			//{
+			//	Console.WriteLine(email.Subject);
+			//}
 			return emails;
 		}
 	}
