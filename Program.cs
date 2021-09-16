@@ -40,8 +40,8 @@ namespace AutomaticAnnouncements
 		//If true, changes announcement channel and removes some of the first emails
 		public static readonly bool debug = false;
 
-		private static int numberOfEmailsToCheck = 15;
-		private static readonly Timer timer = new Timer(2 * 60 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
+		private static int numberOfEmailsToCheck = 10;
+		private static readonly Timer timer = new Timer(2 * 6 * 10 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
 		private DiscordSocketClient _client;
 
 		// To avoid checking every every email recieved since the start of time, this stores the x last ones
@@ -82,16 +82,11 @@ namespace AutomaticAnnouncements
 			ulong channelID;
 			string message ="";
 			string chapterTitle;
-			string novelTitle;
+			string novelTitle = "";
 			string url;
 			string mention;
 
 			List<EmailMessage> emails = service.ReceiveLatestEmail(numberOfEmailsToCheck);
-			//foreach (var email in emails)
-			//{
-			//	Console.WriteLine(email);
-			//}
-			//Console.WriteLine();
 			foreach (EmailMessage email in emails)
 			{
 				if (checkedEmails.Contains(email)) { continue;  }
@@ -154,6 +149,11 @@ namespace AutomaticAnnouncements
 							{
 								novelTitle = match.Value;
 								jid = (JObject)ExternalData.GetSection("Novels")[novelTitle];
+								if (jid == null)
+								{
+									Console.WriteLine("Failed for " + novelTitle);
+									break;
+								}
 								serverID = (ulong)jid["Server"];
 								channelID = (ulong)jid[patreon];
 								mention = (string)jid["PatreonMention"];
@@ -168,37 +168,56 @@ namespace AutomaticAnnouncements
 								mention = (string)jid["PatreonMention"];
 								message = MakeMessage(mention, chapterTitle, url, "announcement");
 							}
-							//ReportCheckedEmail(email);
+							ReportCheckedEmail(email);
 							messageStack.Push(new Tuple<ulong, string>(channelID, message));
 						}
 						break;
 
 					case "noreply@royalroad.com":
 						if (email.Subject.StartsWith("New Chapter of "))
+					//case "automaticannouncements@gmail.com":
+					//	if (email.Subject.Contains("New Chapter of "))
+					//case "automaticannouncements@outlook.com":
+					//	if (email.Subject.Contains("New Chapter of "))
 						{
-							// All emails from this address are on a certain format, the top code here 
-							//is to extrace certain information from those emails
-							HtmlDocument doc = new HtmlDocument();
-							doc.LoadHtml(email.Content);
+							try
+							{
+								// All emails from this address are on a certain format, the top code here 
+								//is to extrace certain information from those emails
+								HtmlDocument doc = new HtmlDocument();
+								doc.LoadHtml(email.Content);
 
-							chapterTitle = doc.DocumentNode.SelectNodes("//td")[27].InnerText.Split("\n")[4];
-							string link = doc.DocumentNode.SelectNodes("//a")[1].Attributes["href"].Value;
-							string novel = email.Subject.Split("New Chapter of ")[1];
+								//Console.WriteLine(doc.DocumentNode.SelectNodes("//a")[3].Attributes["href"].Value);
 
-							HttpWebRequest req = (HttpWebRequest)WebRequest.Create(link);
-							req.AllowAutoRedirect = true;
-							HttpWebResponse myResp = (HttpWebResponse)req.GetResponse();
-							url = myResp.ResponseUri.ToString();
+								//for (int i = 0; i < doc.DocumentNode.SelectNodes("//a").Count; i++)
+								//{
+								//	Console.WriteLine(i + ": " + doc.DocumentNode.SelectNodes("//a")[i].Attributes["href"].Value);
+								//}
 
-							JObject jid = (JObject)ExternalData.GetSection("Novels")[novel];
-							serverID = (ulong)jid["Server"];
-							channelID = (ulong)jid[announcements];
-							mention = (string)jid["Mention"];
+								chapterTitle = doc.DocumentNode.SelectNodes("//td")[15].InnerText.Split("\n")[74].Trim();
+								string link = doc.DocumentNode.SelectNodes("//a")[1].Attributes["href"].Value;
+								novelTitle = email.Subject.Split("New Chapter of ")[1];
 
-							// Pushes a message with extracted onformaion to messageStack
-							message = MakeMessage(mention, chapterTitle, url);
-							//ReportCheckedEmail(email);
-							messageStack.Push(new Tuple<ulong, string>(channelID, message));
+								HttpWebRequest req = (HttpWebRequest)WebRequest.Create(link);
+								req.AllowAutoRedirect = true;
+								HttpWebResponse myResp = (HttpWebResponse)req.GetResponse();
+								url = myResp.ResponseUri.ToString();
+
+								JObject jid = (JObject)ExternalData.GetSection("Novels")[novelTitle];
+								serverID = (ulong)jid["Server"];
+								channelID = (ulong)jid[announcements];
+								mention = (string)jid["Mention"];
+
+								// Pushes a message with extracted onformaion to messageStack
+								message = MakeMessage(mention, chapterTitle, url);
+								ReportCheckedEmail(email);
+								messageStack.Push(new Tuple<ulong, string>(channelID, message));
+							}
+							catch (Exception e)
+							{
+								Console.WriteLine("Update failed for " + novelTitle);
+								Console.WriteLine(e);
+							}
 						}
 						break;
 
@@ -222,33 +241,46 @@ namespace AutomaticAnnouncements
 			while (messageStack.Count > 0) 
 			{
 				Tuple<ulong, string> tuple = messageStack.Pop();
+				if (tuple == null) continue;
 				await (client.GetChannel(tuple.Item1) as IMessageChannel).SendMessageAsync(tuple.Item2);
 			}
 		}
 
 		//Depricated (I think)
-		//// Don't want to resend old messages when the system starts,
-		//// this prevents that
-		//public void ListOldEmails(EmailService service) {
-		//	checkedEmails = service.ReceiveLatestEmail(numberOfEmailsToCheck);
+		// Don't want to resend old messages when the system starts,
+		// this prevents that
+		public void ListOldEmails(EmailService service)
+		{
+			checkedEmails = service.ReceiveLatestEmail(numberOfEmailsToCheck);
 
-		//	////Remove some emails. Only for testing purposes
-		//	if(debug)
-		//	{
-		//		int numOfEmailsToRemove = 0;
-		//		checkedEmails = checkedEmails.GetRange(numOfEmailsToRemove, checkedEmails.Count - numOfEmailsToRemove);
-		//	}
+			//Remove some emails. Only for testing purposes
+			if (debug)
+			{
+				int numOfEmailsToRemove = 1;
 
-		//	checkedEmails.Reverse();
-		//	numberOfEmailsToCheck = Math.Min(numberOfEmailsToCheck, checkedEmails.Count);
-		//}
+				var newCheckedEmails = checkedEmails.GetRange(numOfEmailsToRemove, checkedEmails.Count - numOfEmailsToRemove);
+				for (int i = 0; i < checkedEmails.Count; i++) 
+				{
+					if(i < newCheckedEmails.Count)
+					{
+						checkedEmails[i] = newCheckedEmails[i];
+					}
+					else
+					{
+						checkedEmails[i] = null;
+					}
+				}
+			}
 
-		//// When at the end of the list, start at the beginning again and overwrite the oldest one
-		//public void ReportCheckedEmail(EmailMessage email)
-		//{
-		//	checkedEmails[checkIndex] = email;
-		//	checkIndex = ++checkIndex % numberOfEmailsToCheck;
-		//}
+			checkedEmails.Reverse();
+		}
+
+		// When at the end of the list, start at the beginning again and overwrite the oldest one
+		public void ReportCheckedEmail(EmailMessage email)
+		{
+			checkedEmails[checkIndex] = email;
+			checkIndex = ++checkIndex % numberOfEmailsToCheck;
+		}
 
 		// Creates the message to be sent
 		public string MakeMessage(string mention, string chapterTitle, string url, string chapterType = "chapter")
@@ -273,7 +305,7 @@ namespace AutomaticAnnouncements
 			_client.Log += Log;
 
 			var service = SetupEmail();
-			//ListOldEmails(service);
+			ListOldEmails(service);
 			timer.Elapsed += (source, e) =>
 			{
 				StackNewEmailsAsync(service);

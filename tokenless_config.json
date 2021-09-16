@@ -1,0 +1,63 @@
+{
+	"EmailConfiguration": {
+		"SmtpServer": "smtp.gmail.com",
+		"SmtpPort": 465,
+		"SmtpUsername": "AutomaticAnnouncements@gmail.com",
+		"OldSmtpPassword": "<old pw",
+		"SmtpPassword": "<pw>",
+ 
+		"PopServer": "pop.gmail.com",
+		"PopPort": 995,
+		"PopUsername": "AutomaticAnnouncements@gmail.com", 
+		"OldPopPassword": "<old pw>",
+		"PopPassword": "<pw>"
+	},
+	"Novels": {
+		"A Journey of Black and Red": {
+			"Server": 628741050403651584,
+			"Announcements": 632874335413207050,
+			"Mention": "<@&633185691811053580>",
+			"Patreon": 632190258309496832,
+			"PatreonMention": "<@&632199981301760010> <@&797002243076390944>",
+
+			"FPatreon": 637934341623644160,
+			"FAnnouncements": 637934341623644160
+		},
+		"The Calamitous Bob": {
+			"Server": 628741050403651584,
+			"Announcements": 632874335413207050,
+			"Mention": "<@&633185691811053580>",
+			"Patreon": 797002982369394698,
+			"PatreonMention": "<@&797002243076390944>",
+
+			"FPatreon": 637934341623644160,
+			"FAnnouncements": 637934341623644160
+		},
+		"Twilight Kingdom": {
+			"Server": 595883896730681354,
+			"Announcements": 663366288726294568,
+			"Mention": "<@&663363869091299328>",
+
+			"FAnnouncements": 637934341623644160
+		}
+	},
+	"Discord": {
+		"Token": "<discord token>"
+	},
+
+	"Notes": [{
+		"1": "
+			Incoming Mail (IMAP) Server 	
+			imap.gmail.com
+			Requires SSL: Yes
+			Port: 993
+
+			Outgoing Mail (SMTP) Server 	
+			smtp.gmail.com
+			Requires SSL: Yes
+			Requires TLS: Yes (if available)
+			Requires Authentication: Yes
+			Port for SSL: 465
+			Port for TLS/STARTTLS: 587"
+	}],
+}

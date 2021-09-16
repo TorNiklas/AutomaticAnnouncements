@@ -8,6 +8,7 @@ using System.Linq;
 using MimeKit.Text;
 using MailKit.Net.Pop3;
 using MailKit.Security;
+using System.Net.Mail;
 
 namespace AutomaticAnnouncements
 {
@@ -90,15 +91,15 @@ namespace AutomaticAnnouncements
 			//emailClient.Connect("pop.gmail.com", 995, SecureSocketOptions.SslOnConnect);
 
 			////Remove any OAuth functionality, then authenticate 
-			//emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
+			emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
 			emailClient.Authenticate(_emailConfiguration.PopUsername, _emailConfiguration.PopPassword);
 
-
 			List<EmailMessage> emails = new List<EmailMessage>();
-			//for (int i = emailClient.Count - 1; i >= 0 && i >= emailClient.Count - maxCount; i--)
-			for (int i = 0; i < emailClient.Count && i < maxCount; i++)
+			for (int i = emailClient.Count - 1; i >= 0 && i >= emailClient.Count - maxCount; i--)
+			//for (int i = 0; i < emailClient.Count && i < maxCount; i++)
 			{
 				var message = emailClient.GetMessage(i);
+
 				var emailMessage = new EmailMessage
 				{
 					Content = !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : message.TextBody,
@@ -110,10 +111,6 @@ namespace AutomaticAnnouncements
 			}
 
 			emailClient.Disconnect(true);
-			//foreach (var email in emails)
-			//{
-			//	Console.WriteLine(email.Subject);
-			//}
 			return emails;
 		}
 	}
