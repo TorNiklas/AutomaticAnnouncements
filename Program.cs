@@ -180,6 +180,7 @@ namespace AutomaticAnnouncements
 					//case "automaticannouncements@outlook.com":
 					//	if (email.Subject.Contains("New Chapter of "))
 						{
+							ReportCheckedEmail(email);
 							try
 							{
 								// All emails from this address are on a certain format, the top code here 
@@ -210,7 +211,6 @@ namespace AutomaticAnnouncements
 
 								// Pushes a message with extracted onformaion to messageStack
 								message = MakeMessage(mention, chapterTitle, url);
-								ReportCheckedEmail(email);
 								messageStack.Push(new Tuple<ulong, string>(channelID, message));
 							}
 							catch (Exception e)
