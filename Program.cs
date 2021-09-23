@@ -105,7 +105,7 @@ namespace AutomaticAnnouncements
 				{
 					// Redirected
 					case "torniklas@outlook.com":
-						if (email.Subject.Contains("Novels by Mecanimus "))
+						if (email.Subject.Contains("Novels by Mecanimus"))
 						{
 							// All emails from this address are on a certain format, the top code here 
 							//is to extrace certain information from those emails
