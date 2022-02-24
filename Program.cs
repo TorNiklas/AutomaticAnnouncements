@@ -38,10 +38,10 @@ namespace AutomaticAnnouncements
 	class Program
 	{
 		//If true, changes announcement channel and removes some of the first emails
-		public static readonly bool debug = true;
+		public static readonly bool debug = false;
 
 		private static int numberOfEmailsToCheck = 10;
-		private static readonly Timer timer = new Timer(10 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
+		private static readonly Timer timer = new Timer(2 * 60 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
 		private DiscordSocketClient _client;
 
 		// To avoid checking every every email recieved since the start of time, this stores the x last ones
