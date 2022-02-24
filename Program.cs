@@ -38,10 +38,10 @@ namespace AutomaticAnnouncements
 	class Program
 	{
 		//If true, changes announcement channel and removes some of the first emails
-		public static readonly bool debug = false;
+		public static readonly bool debug = true;
 
 		private static int numberOfEmailsToCheck = 10;
-		private static readonly Timer timer = new Timer(2 * 6 * 10 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
+		private static readonly Timer timer = new Timer(10 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
 		private DiscordSocketClient _client;
 
 		// To avoid checking every every email recieved since the start of time, this stores the x last ones
@@ -114,62 +114,113 @@ namespace AutomaticAnnouncements
 
 							chapterTitle = email.Subject.Split("\"")[1];
 
-							string link = doc.DocumentNode.SelectNodes("//a")[2].Attributes["href"].Value;
+							//string link = doc.DocumentNode.SelectNodes("//a")[2].Attributes["href"].Value;
 
-							try
+							string[] tags = { "Journey", "Bob" };
+							bool[] pingChannel = new bool[tags.Length];
+							Array.Fill(pingChannel, false); //Fill with false
+							string link = "";
+
+							JObject novels = (JObject)ExternalData.GetSection("Novels");
+
+							DateTime latestTime = DateTime.MinValue;
+							int numOfEntriesToCheck = 5;
+							for (int i = 0; i < tags.Length; i++)
 							{
-								HttpWebRequest req = (HttpWebRequest)WebRequest.Create(link);
-								req.AllowAutoRedirect = true;
-								var myResp = req.GetResponse(); // This will fail
-								url = myResp.ResponseUri.ToString();
+								string jsonurl = "";
+								jsonurl += "https://www.patreon.com/api/posts?fields[post]=title%2Curl&filter[campaign_id]=3125991&filter[tag]=";
+								jsonurl += tags[i];
+								jsonurl += "&page[size]=";
+								jsonurl += numOfEntriesToCheck.ToString();
+								jsonurl += "&sort=-published_at&json-api-use-default-includes=false&json-api-version=1.0";
 
-								//string author = email.Subject.Split("\"")[0];
-								//WebClient client = new WebClient();
+								WebClient client = new WebClient();
+								string jsonString = client.DownloadString(jsonurl);
+								dynamic content = JObject.Parse(jsonString);
 
-								////this doesn't work for some reason; 403 forbidden
-								//string jsonString = client.DownloadString("https://www.patreon.com/api/posts?include=user.null%2Caccess_rules.tier.null%2Cattachments.null%2Caudio.null%2Cimages.null%2Cpoll.choices.null%2Cpoll.current_user_responses.null&fields[user]=full_name%2Cimage_url%2Curl&fields[post]=comment_count%2Ccontent%2C%2Ccurrent_user_can_view%2Cembed%2Cimage%2Cis_paid%2Clike_count%2Cmin_cents_pledged_to_view%2Cpatreon_url%2Cpatron_count%2Cpledge_url%2Cpost_file%2Cpost_type%2Cpublished_at%2Cteaser_text%2Ctitle%2Cupgrade_url%2Curl&fields[reward]=[]&fields[access-rule]=access_rule_type%2Camount_cents%2Cpost_count&fields[media]=download_url%2Cimage_urls%2Cmetadata&filter[campaign_id]=3125991&filter[contains_exclusive_posts]=true&filter[is_draft]=false&page[size]=10&sort=-published_at&json-api-use-default-includes=false&json-api-version=1.0");
-								//client.Dispose();
-
-								//dynamic content = JObject.Parse(jsonString);
-								//JObject attributes = content["data"][0]["attributes"];
-								//string id = (string)content["data"][0]["id"];
-								//chapterTitle = (string)attributes["title"];
-								//url = (string)attributes["url"];
-							}
-							catch (WebException e)
-							{
-								url = e.Response.ResponseUri.ToString().Split("?")[0];
-							}
-
-							// Chapter title contains novel title, so this is fine
-							Regex regex = new Regex(@"^[\w\s]+(?=\s\d+:)");
-							Match match = regex.Match(chapterTitle);
-							JObject jid;
-							if (match.Success) //Is chapter
-							{
-								novelTitle = match.Value;
-								jid = (JObject)ExternalData.GetSection("Novels")[novelTitle];
-								if (jid == null)
+								for (int j = 0; j < numOfEntriesToCheck; j++)
 								{
-									Console.WriteLine("Failed for " + novelTitle);
-									break;
+									string fetchedTitle = content["data"][j]["attributes"]["title"];
+									if (fetchedTitle == chapterTitle)
+									{
+										pingChannel[i] = true;
+										link = content["data"][0]["attributes"]["url"];
+									}
 								}
-								serverID = (ulong)jid["Server"];
-								channelID = (ulong)jid[patreon];
-								mention = (string)jid["PatreonMention"];
-								message = MakeMessage(mention, chapterTitle, url);
 							}
-							else //Is announcement
+
+							for (int i = 0; i < tags.Length; i++)
 							{
-								//General place for announcements
-								jid = (JObject)ExternalData.GetSection("Novels")["A Journey of Black and Red"];
-								serverID = (ulong)jid["Server"];
-								channelID = (ulong)jid[patreon];
-								mention = (string)jid["PatreonMention"];
-								message = MakeMessage(mention, chapterTitle, url, "announcement");
+								if(!pingChannel[i])
+								{
+									//novel = novel.Next;
+									continue;
+								}
+
+								//JObject novel = (JObject)novels.ToString();
+								//Console.WriteLine(novels.Properties().ToArray()[0].Name);
+								JObject novel = (JObject)novels.Properties().ToArray()[i].Value;
+								serverID = (ulong)novel["Server"];
+								channelID = (ulong)novel[patreon];
+								mention = (string)novel["PatreonMention"];
+								message = MakeMessage(mention, chapterTitle, link);
+								messageStack.Push(new Tuple<ulong, string>(channelID, message));
 							}
+							//try
+							//{
+							//	HttpWebRequest req = (HttpWebRequest)WebRequest.Create(link);
+							//	req.AllowAutoRedirect = true;
+							//	var myResp = req.GetResponse(); // This will fail
+							//	url = myResp.ResponseUri.ToString();
+
+							//	//string author = email.Subject.Split("\"")[0];
+							//	//WebClient client = new WebClient();
+
+							//	////this doesn't work for some reason; 403 forbidden
+							//	//string jsonString = client.DownloadString("https://www.patreon.com/api/posts?include=user.null%2Caccess_rules.tier.null%2Cattachments.null%2Caudio.null%2Cimages.null%2Cpoll.choices.null%2Cpoll.current_user_responses.null&fields[user]=full_name%2Cimage_url%2Curl&fields[post]=comment_count%2Ccontent%2C%2Ccurrent_user_can_view%2Cembed%2Cimage%2Cis_paid%2Clike_count%2Cmin_cents_pledged_to_view%2Cpatreon_url%2Cpatron_count%2Cpledge_url%2Cpost_file%2Cpost_type%2Cpublished_at%2Cteaser_text%2Ctitle%2Cupgrade_url%2Curl&fields[reward]=[]&fields[access-rule]=access_rule_type%2Camount_cents%2Cpost_count&fields[media]=download_url%2Cimage_urls%2Cmetadata&filter[campaign_id]=3125991&filter[contains_exclusive_posts]=true&filter[is_draft]=false&page[size]=10&sort=-published_at&json-api-use-default-includes=false&json-api-version=1.0");
+							//	//client.Dispose();
+
+							//	//dynamic content = JObject.Parse(jsonString);
+							//	//JObject attributes = content["data"][0]["attributes"];
+							//	//string id = (string)content["data"][0]["id"];
+							//	//chapterTitle = (string)attributes["title"];
+							//	//url = (string)attributes["url"];
+							//}
+							//catch (WebException e)
+							//{
+							//	Console.WriteLine("123");
+							//	Console.WriteLine((JObject)ExternalData.GetSection("Novels")[novelTitle]);
+							//	url = e.Response.ResponseUri.ToString().Split("?")[0];
+							//}
+
+							//// Chapter title contains novel title, so this is fine
+							//Regex regex = new Regex(@"^[\w\s]+(?=\s\d+:)");
+							//Match match = regex.Match(chapterTitle);
+							//JObject jid;
+							//if (match.Success) //Is chapter
+							//{
+							//	novelTitle = match.Value;
+							//	jid = (JObject)ExternalData.GetSection("Novels")[novelTitle];
+							//	if (jid == null)
+							//	{
+							//		Console.WriteLine("Failed for " + novelTitle);
+							//		break;
+							//	}
+							//	serverID = (ulong)jid["Server"];
+							//	channelID = (ulong)jid[patreon];
+							//	mention = (string)jid["PatreonMention"];
+							//	message = MakeMessage(mention, chapterTitle, url);
+							//}
+							//else //Is announcement
+							//{
+							//	//General place for announcements
+							//	jid = (JObject)ExternalData.GetSection("Novels")["A Journey of Black and Red"];
+							//	serverID = (ulong)jid["Server"];
+							//	channelID = (ulong)jid[patreon];
+							//	mention = (string)jid["PatreonMention"];
+							//	message = MakeMessage(mention, chapterTitle, url, "announcement");
+							//}
 							ReportCheckedEmail(email);
-							messageStack.Push(new Tuple<ulong, string>(channelID, message));
 						}
 						break;
 
@@ -256,7 +307,7 @@ namespace AutomaticAnnouncements
 			//Remove some emails. Only for testing purposes
 			if (debug)
 			{
-				int numOfEmailsToRemove = 1;
+				int numOfEmailsToRemove = 5;
 
 				var newCheckedEmails = checkedEmails.GetRange(numOfEmailsToRemove, checkedEmails.Count - numOfEmailsToRemove);
 				for (int i = 0; i < checkedEmails.Count; i++) 
