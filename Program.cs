@@ -138,11 +138,6 @@ namespace AutomaticAnnouncements
 								//Console.WriteLine(jsonurl);
 
 								dynamic content = Browser.GetPatreonPosts(jsonurl);
-								//Console.WriteLine(content);
-								//Thread.Sleep(50000);
-								//WebClient client = new WebClient();
-								//string jsonString = client.DownloadString(jsonurl);
-								//dynamic content = JObject.Parse(jsonString);
 
 								for (int j = 0; j < numOfEntriesToCheck; j++)
 								{
