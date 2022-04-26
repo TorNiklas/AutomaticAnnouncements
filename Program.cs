@@ -40,7 +40,7 @@ namespace AutomaticAnnouncements
 	class Program
 	{
 		//If true, changes announcement channel and removes some of the first emails
-		public static readonly bool debug = true;
+		public static readonly bool debug = false;
 
 		private static int numberOfEmailsToCheck = 10;
 		private static readonly System.Timers.Timer timer = new System.Timers.Timer(2 * 60 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
