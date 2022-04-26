@@ -9,6 +9,9 @@ using MimeKit.Text;
 using MailKit.Net.Pop3;
 using MailKit.Security;
 using System.Net.Mail;
+using System.Reflection;
+using System.Diagnostics;
+using System.Threading;
 
 namespace AutomaticAnnouncements
 {
@@ -86,7 +89,34 @@ namespace AutomaticAnnouncements
 		{
 			using Pop3Client emailClient = new Pop3Client();
 
-			emailClient.Connect(_emailConfiguration.PopServer, _emailConfiguration.PopPort, true);
+			bool connected = false;
+			for (int i = 0; i < 10; i++)
+			{
+				try
+				{
+					emailClient.Connect(_emailConfiguration.PopServer, _emailConfiguration.PopPort, true);
+					connected = true;
+					break;
+				}
+				catch (Exception e)
+				{
+					Thread.Sleep(10000);
+					Console.WriteLine(e);
+				}
+			}
+			if(!connected) //Restart application
+			{
+				Console.WriteLine("Restarting...");
+
+				// Get file path of current process 
+				var filePath = Assembly.GetExecutingAssembly().Location;
+
+				// Start program
+				Process.Start(filePath);
+
+				// For all Windows application but typically for Console app.
+				Environment.Exit(0);
+			}
 
 			//emailClient.Connect("pop.gmail.com", 995, SecureSocketOptions.SslOnConnect);
 

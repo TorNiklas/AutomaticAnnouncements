@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using System.Threading;
 using Discord;
 using System.Text.RegularExpressions;
 using System.Linq;
@@ -19,6 +20,7 @@ using NUnit.Framework;
 using Discord.WebSocket;
 using System.Timers;
 using HtmlAgilityPack;
+using System.Runtime.InteropServices;
 
 //MailKit documentation http://www.mimekit.net/docs/html/Introduction.htm
 //Json.NET documentation https://www.newtonsoft.com/json/help/html/Introduction.htm
@@ -38,10 +40,10 @@ namespace AutomaticAnnouncements
 	class Program
 	{
 		//If true, changes announcement channel and removes some of the first emails
-		public static readonly bool debug = false;
+		public static readonly bool debug = true;
 
 		private static int numberOfEmailsToCheck = 10;
-		private static readonly Timer timer = new Timer(2 * 60 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
+		private static readonly System.Timers.Timer timer = new System.Timers.Timer(2 * 60 * 1000) { AutoReset = true, }; //When testing, don't set this to less than 10 sec to avoid annoying things getting on top of each other
 		private DiscordSocketClient _client;
 
 		// To avoid checking every every email recieved since the start of time, this stores the x last ones
@@ -133,10 +135,14 @@ namespace AutomaticAnnouncements
 								jsonurl += "&page[size]=";
 								jsonurl += numOfEntriesToCheck.ToString();
 								jsonurl += "&sort=-published_at&json-api-use-default-includes=false&json-api-version=1.0";
+								//Console.WriteLine(jsonurl);
 
-								WebClient client = new WebClient();
-								string jsonString = client.DownloadString(jsonurl);
-								dynamic content = JObject.Parse(jsonString);
+								dynamic content = Browser.GetPatreonPosts(jsonurl);
+								//Console.WriteLine(content);
+								//Thread.Sleep(50000);
+								//WebClient client = new WebClient();
+								//string jsonString = client.DownloadString(jsonurl);
+								//dynamic content = JObject.Parse(jsonString);
 
 								for (int j = 0; j < numOfEntriesToCheck; j++)
 								{
@@ -313,7 +319,14 @@ namespace AutomaticAnnouncements
 			await _client.LoginAsync(TokenType.Bot, token);
 			await _client.StartAsync();
 
-			timer.Enabled = true;
+			StackNewEmailsAsync(service);
+			PopMessageStack(_client);
+			Console.WriteLine("Last pop: initial");
+			timer.Start();
+			//StackNewEmailsAsync(service);
+			//PopMessageStack(_client);
+			//Console.WriteLine("Last pop: initial");
+
 			await Task.Delay(-1);
 			
 		}

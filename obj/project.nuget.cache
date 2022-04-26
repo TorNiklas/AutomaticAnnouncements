@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Z+Bj9v1uuBZmivGVa3t3dAp5SMjpSaYp54t7U/h38x50CO4Sni9kY27q6aPHiCaoTXBrCVnx8U+8sbg+1NGLEQ==",
+  "dgSpecHash": "4/+StR87pAGDM5V2MSkFEVKvxdTxcleff04OvG3gUeeGrZK0HdfGXiv8rg3wEsHZgVxbbHmtudvxpb30xEGsfg==",
   "success": true,
   "projectFilePath": "F:\\source\\repos\\AutomaticAnnouncements\\AutomaticAnnouncements.csproj",
   "expectedPackageFiles": [
@@ -95,11 +95,7 @@
     "C:\\Users\\Tor Niklas\\.nuget\\packages\\system.xml.readerwriter\\4.3.0\\system.xml.readerwriter.4.3.0.nupkg.sha512",
     "C:\\Users\\Tor Niklas\\.nuget\\packages\\system.xml.xmldocument\\4.3.0\\system.xml.xmldocument.4.3.0.nupkg.sha512",
     "C:\\Users\\Tor Niklas\\.nuget\\packages\\system.xml.xpath\\4.3.0\\system.xml.xpath.4.3.0.nupkg.sha512",
-    "C:\\Users\\Tor Niklas\\.nuget\\packages\\system.xml.xpath.xmldocument\\4.3.0\\system.xml.xpath.xmldocument.4.3.0.nupkg.sha512",
-    "C:\\Users\\Tor Niklas\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.0.3\\microsoft.netcore.app.host.win-x64.3.0.3.nupkg.sha512",
-    "C:\\Users\\Tor Niklas\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.0.1\\microsoft.aspnetcore.app.ref.3.0.1.nupkg.sha512",
-    "C:\\Users\\Tor Niklas\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\3.0.0\\microsoft.windowsdesktop.app.ref.3.0.0.nupkg.sha512",
-    "C:\\Users\\Tor Niklas\\.nuget\\packages\\microsoft.netcore.app.ref\\3.0.0\\microsoft.netcore.app.ref.3.0.0.nupkg.sha512"
+    "C:\\Users\\Tor Niklas\\.nuget\\packages\\system.xml.xpath.xmldocument\\4.3.0\\system.xml.xpath.xmldocument.4.3.0.nupkg.sha512"
   ],
   "logs": []
 }
