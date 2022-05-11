@@ -116,67 +116,37 @@ namespace AutomaticAnnouncements
 
 							chapterTitle = email.Subject.Split("\"")[1];
 
-							//string link = doc.DocumentNode.SelectNodes("//a")[2].Attributes["href"].Value;
-
-							string[] tags = { "Journey", "Bob" };
-							bool[] pingChannel = new bool[tags.Length];
-							Array.Fill(pingChannel, false); //Fill with false
-							string link = "";
+							string link = doc.DocumentNode.SelectNodes("//a")[2].Attributes["href"].Value;
+							link = link.Split("?")[0];
 
 							JObject novels = (JObject)ExternalData.GetSection("Novels");
 
-							DateTime latestTime = DateTime.MinValue;
-							int numOfEntriesToCheck = 5;
-							for (int i = 0; i < tags.Length; i++)
+							//TODO: Don't hardcode this
+							bool neither = !chapterTitle.Contains("Journey") && !chapterTitle.Contains("Bob");
+							if (chapterTitle.Contains("Journey") || neither) 
 							{
-								string jsonurl = "";
-								jsonurl += "https://www.patreon.com/api/posts?fields[post]=title%2Curl&filter[campaign_id]=3125991&filter[tag]=";
-								jsonurl += tags[i];
-								jsonurl += "&page[size]=";
-								jsonurl += numOfEntriesToCheck.ToString();
-								jsonurl += "&sort=-published_at&json-api-use-default-includes=false&json-api-version=1.0";
-								//Console.WriteLine(jsonurl);
-
-								dynamic content = Browser.GetPatreonPosts(jsonurl);
-
-								for (int j = 0; j < numOfEntriesToCheck; j++)
-								{
-									string fetchedTitle = content["data"][j]["attributes"]["title"];
-									if (fetchedTitle == chapterTitle)
-									{
-										pingChannel[i] = true;
-										link = content["data"][0]["attributes"]["url"];
-									}
-								}
-							}
-
-							for (int i = 0; i < tags.Length; i++)
-							{
-								if(!pingChannel[i])
-								{
-									//novel = novel.Next;
-									continue;
-								}
-
-								//JObject novel = (JObject)novels.ToString();
-								//Console.WriteLine(novels.Properties().ToArray()[0].Name);
-								JObject novel = (JObject)novels.Properties().ToArray()[i].Value;
+								JObject novel = (JObject)novels["A Journey of Black and Red"];
 								serverID = (ulong)novel["Server"];
 								channelID = (ulong)novel[patreon];
 								mention = (string)novel["PatreonMention"];
 								message = MakeMessage(mention, chapterTitle, link);
 								messageStack.Push(new Tuple<ulong, string>(channelID, message));
 							}
-							ReportCheckedEmail(email);
+							if (chapterTitle.Contains("Bob") || neither)
+							{
+								JObject novel = (JObject)novels["The Calamitous Bob"];
+								serverID = (ulong)novel["Server"];
+								channelID = (ulong)novel[patreon];
+								mention = (string)novel["PatreonMention"];
+								message = MakeMessage(mention, chapterTitle, link);
+								messageStack.Push(new Tuple<ulong, string>(channelID, message));
+							}
 						}
+						ReportCheckedEmail(email);
 						break;
 
 					case "noreply@royalroad.com":
 						if (email.Subject.StartsWith("New Chapter of "))
-					//case "automaticannouncements@gmail.com":
-					//	if (email.Subject.Contains("New Chapter of "))
-					//case "automaticannouncements@outlook.com":
-					//	if (email.Subject.Contains("New Chapter of "))
 						{
 							ReportCheckedEmail(email);
 							try
@@ -203,6 +173,7 @@ namespace AutomaticAnnouncements
 								url = myResp.ResponseUri.ToString();
 
 								JObject jid = (JObject)ExternalData.GetSection("Novels")[novelTitle];
+								if (jid == null) continue;
 								serverID = (ulong)jid["Server"];
 								channelID = (ulong)jid[announcements];
 								mention = (string)jid["Mention"];
@@ -254,7 +225,7 @@ namespace AutomaticAnnouncements
 			//Remove some emails. Only for testing purposes
 			if (debug)
 			{
-				int numOfEmailsToRemove = 5;
+				int numOfEmailsToRemove = 1;
 
 				var newCheckedEmails = checkedEmails.GetRange(numOfEmailsToRemove, checkedEmails.Count - numOfEmailsToRemove);
 				for (int i = 0; i < checkedEmails.Count; i++) 
