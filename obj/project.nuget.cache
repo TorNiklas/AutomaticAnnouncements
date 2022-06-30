@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ReWyfVl+3AU3GCqDZHcoiSC4gJM0DABQnNFfx0Q8z9peEMOIXy13B1RNf0Mph5Fa2+ctJ67slxcfdzJt9qHYsA==",
+  "dgSpecHash": "JKXF4o6Gjvxh6YNZNTvfp75vqqnxba6ufIT719RipxxfSwgWPmQBdc0wfETX3Qc1Z6xPrd4sPRu/QTwxpmY+vQ==",
   "success": true,
-  "projectFilePath": "F:\\source\\repos\\AutomaticAnnouncements\\AutomaticAnnouncements.csproj",
+  "projectFilePath": "C:\\Users\\Tor Niklas\\Documents\\GitProjects\\AutomaticAnnouncements\\AutomaticAnnouncements.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Tor Niklas\\.nuget\\packages\\discord.net\\2.1.1\\discord.net.2.1.1.nupkg.sha512",
     "C:\\Users\\Tor Niklas\\.nuget\\packages\\discord.net.commands\\2.1.1\\discord.net.commands.2.1.1.nupkg.sha512",
